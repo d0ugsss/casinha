@@ -1,7 +1,7 @@
 // Nossa Casinha — fluxo do jogo
 import { ROOMS, LEVELS, LAST_PLAYABLE, TUTORIALS, CHARS, SCENES, IDLE_LINES, presence, availableMission, roomOfLevel } from './data.js';
 import { state, save, reset, roomItems, roomProgress, isRoomUnlocked } from './state.js';
-import { sfx, unlockAudio, toggleMusic } from './audio.js';
+import { sfx, unlockAudio, toggleMusic, setMusic } from './audio.js';
 import { loadSprites, svgUrl } from './pieces.js';
 import { Match3 } from './match3.js';
 import { House } from './house.js';
@@ -58,6 +58,7 @@ async function boot() {
 async function goHouse() {
   closeSheet();
   showScreen('s-house');
+  setMusic('casa');
   if (!isRoomUnlocked(state.room) || !ROOMS.find(r => r.id === state.room).ready) state.room = 'quintal';
   const room = ROOMS.find(r => r.id === state.room);
   await house.loadRoom(room.id, roomItems(room.id), { allItems: Object.fromEntries(room.items.map(i => [i.id, true])), plaque: room.id === 'quintal' && state.missions.milton1 });
@@ -247,6 +248,7 @@ async function checkRoomDone() {
   state.boosters.hammer++; state.boosters.broom++; state.boosters.shuffle++;
   save();
   await new Promise(r => setTimeout(r, 900));
+  setMusic('caixinha');
   sfx.win(); confetti(80);
   await modal((box, done) => {
     box.append(h('h2', {}, `${room.name} pronto!`),
@@ -255,6 +257,7 @@ async function checkRoomDone() {
       h('p', { style: { fontSize: '14px' } }, 'Ganhou +1 martelo, +1 vassoura e +1 embaralhar.'),
       h('div', { class: 'btns' }, h('button', { class: 'btn green big', onclick: () => done() }, 'Que lindo!')));
   });
+  setMusic('casa');
   renderPanel();
 }
 
@@ -296,6 +299,7 @@ function startLevel(n) {
   const lv = { ...LEVELS[n] };
   house.stop();
   showScreen('s-level');
+  setMusic('fases');
   $('#lv-name').textContent = `Fase ${n}`;
   $('#lv-sub').textContent = `${roomOfLevel(n).name}${lv.tier === 2 ? ' · muito difícil' : lv.tier === 1 ? ' · difícil' : ''}`;
   if (game) game.destroy();
@@ -407,6 +411,7 @@ async function openMinigame(m) {
   const scr = $('#s-mini');
   scr.innerHTML = '';
   showScreen('s-mini');
+  setMusic('desafio');
   const stones = h('div', { class: 'path-stones' });
   const back = h('button', { class: 'round', 'aria-label': 'Sair do desafio', onclick: async () => {
     const ok = await modal((box, done) => { box.append(h('h2', {}, 'Sair do desafio?'), h('p', {}, 'O Milton espera você voltar.'), h('div', { class: 'btns' }, h('button', { class: 'btn green', onclick: () => done(false) }, 'Continuar'), h('button', { class: 'btn soft', onclick: () => done(true) }, 'Sair'))); });
@@ -472,6 +477,7 @@ async function winMission(m) {
 function openMap() {
   house.stop();
   showScreen('s-map');
+  setMusic('caixinha');
   renderMap($('#s-map'), {
     onBack: () => { sfx.tap(); goHouse(); },
     onRoom: id => {

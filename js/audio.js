@@ -70,20 +70,87 @@ export const sfx = {
   urgent: () => [880, 660, 880, 660].forEach((f, i) => tone(f, 0.18, { type: 'square', vol: 0.07, delay: i * 0.2 }))
 };
 
+// ---------- músicas: uma pra cada momento, com troca suave ----------
+const TRACKS = {
+  casa: 'assets/audio/musica.mp3',      // passeando pela casa
+  fases: 'assets/audio/pecinhas.mp3',   // combinando peças
+  desafio: 'assets/audio/desafio.mp3',  // desafios dos personagens
+  caixinha: 'assets/audio/caixinha.mp3' // mapa e cômodo pronto
+};
+const MUSIC_VOL = 0.32;
+let wanted = 'casa';
+let loading = null;
+const raw = {};
+const decoded = new Map(); // guarda no máximo 2 faixas abertas (economiza memória no celular)
+
+function fetchRaw(name) {
+  if (!raw[name]) raw[name] = fetch(TRACKS[name]).then(r => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
+  return raw[name];
+}
+
+async function getBuffer(name) {
+  if (decoded.has(name)) { const b = decoded.get(name); decoded.delete(name); decoded.set(name, b); return b; }
+  const ab = await fetchRaw(name);
+  if (!ab || !ctx) return null;
+  const buf = await new Promise(res => { try { ctx.decodeAudioData(ab.slice(0), res, () => res(null)); } catch (e) { res(null); } });
+  if (buf) { decoded.set(name, buf); while (decoded.size > 2) decoded.delete(decoded.keys().next().value); }
+  return buf;
+}
+
+function fadeOut(tr) {
+  if (!tr || !ctx) return;
+  const t = ctx.currentTime;
+  tr.g.gain.cancelScheduledValues(t);
+  tr.g.gain.setValueAtTime(tr.g.gain.value, t);
+  tr.g.gain.linearRampToValueAtTime(0, t + 0.6);
+  try { tr.src.stop(t + 0.65); } catch (e) { /* já parou */ }
+}
+
+async function playWanted() {
+  const c = ac();
+  if (!c || !state.music) return;
+  const name = wanted;
+  if ((music && music.name === name) || loading === name) return;
+  loading = name;
+  const buf = await getBuffer(name);
+  if (loading === name) loading = null;
+  if (!buf || wanted !== name || !state.music || (music && music.name === name)) return;
+  fadeOut(music);
+  const src = c.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(MUSIC_VOL, c.currentTime + 0.9);
+  src.connect(g); g.connect(c.destination);
+  src.start();
+  music = { name, src, g };
+  // já deixa a próxima provável baixada
+  Object.keys(TRACKS).forEach(fetchRaw);
+}
+
+export function setMusic(name) {
+  if (!TRACKS[name]) return;
+  wanted = name;
+  if (state.music && ctx) playWanted();
+}
+
 export function startMusic() {
   if (!state.music) return;
-  if (!music) {
-    music = new Audio('assets/audio/musica.mp3');
-    music.loop = true;
-    music.volume = 0.32;
-  }
-  const p = music.play();
-  if (p && p.catch) p.catch(() => {});
+  playWanted();
 }
 
 export function stopMusic() {
-  if (music) music.pause();
+  fadeOut(music);
+  music = null;
 }
+
+// app em segundo plano: pausa tudo; voltando: continua
+document.addEventListener('visibilitychange', () => {
+  if (!ctx) return;
+  if (document.hidden) ctx.suspend().catch(() => {});
+  else ctx.resume().catch(() => {});
+});
 
 export function toggleMusic() {
   state.music = !state.music;
@@ -91,3 +158,6 @@ export function toggleMusic() {
   if (state.music) startMusic(); else stopMusic();
   return state.music;
 }
+
+// para os testes: qual música está tocando
+export function musicNow() { return music ? music.name : null; }

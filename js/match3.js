@@ -104,7 +104,8 @@ export class Match3 {
       if (t === 'dirt' || t === 'dirt2') {
         const lv = t === 'dirt2' ? 2 : 1;
         const n = Math.min(g[1], Math.floor(this.onCount * 0.85));
-        const picked = pickSym(n, cl => (R - 1 - cl.r) * 6 + Math.abs(cl.c - 3.5) * 2, cl => free(cl) && !cl.dirt);
+        // espalha a sujeira pelo meio/baixo do tabuleiro (não só na última linha, que é a mais difícil de alcançar)
+        const picked = pickSym(n, cl => Math.abs(cl.r - 4.6) * 4 + Math.abs(cl.c - 3.5) * 1.5, cl => free(cl) && !cl.dirt);
         picked.forEach(cl => { cl.dirt = lv; cl.dirtKind = lv; });
         this.goals.push({ type: t, need: picked.length, got: 0 });
       }
@@ -321,6 +322,9 @@ export class Match3 {
       const groups = this.findGroups();
       if (!groups.length) {
         if (this.collectBones()) { await this.gravity(); continue; }
+        // especial ativado sozinho deixa buracos: faz as peças caírem antes de terminar a jogada
+        const holes = this.countHoles();
+        if (holes) { await this.gravity(); if (this.countHoles() < holes) continue; }
         break;
       }
       combo++;
@@ -600,23 +604,35 @@ export class Match3 {
     await this.runChain();
   }
 
+  // as duas últimas casas de cada coluna: o ossinho sai quando chega nelas
+  exitZone() {
+    if (!this._exit) {
+      this._exit = new Set();
+      for (let c = 0; c < C; c++) {
+        let n = 0;
+        for (let r = R - 1; r >= 0 && n < 2; r--) { const cl = this.cells[r][c]; if (cl.on) { this._exit.add(cl); n++; } else if (n) break; }
+      }
+    }
+    return this._exit;
+  }
+
   collectBones() {
     let got = false;
-    for (let c = 0; c < C; c++) {
-      let bottom = null;
-      for (let r = R - 1; r >= 0; r--) { const cl = this.cells[r][c]; if (cl.on && this.holds(cl)) { bottom = cl; break; } if (cl.on) break; }
-      if (bottom && bottom.piece && bottom.piece.bone && Math.abs(bottom.piece.y - bottom.r) < 0.05) {
-        const p = bottom.piece;
-        bottom.piece = null;
-        this.pop('bone', c + 0.5, bottom.r + 0.5, p);
-        this.burst(c + 0.5, bottom.r + 0.5, '#FFF4DD', 12);
+    for (const cl of this.exitZone()) {
+      const p = cl.piece;
+      if (p && p.bone && this.holds(cl) && Math.abs(p.y - cl.r) < 0.05) {
+        cl.piece = null;
+        this.pop('bone', cl.c + 0.5, cl.r + 0.5, p);
+        this.burst(cl.c + 0.5, cl.r + 0.5, '#FFF4DD', 12);
         sfx.star();
-        this.credit('bone', undefined, c + 0.5, bottom.r + 0.5);
+        this.credit('bone', undefined, cl.c + 0.5, cl.r + 0.5);
         got = true;
       }
     }
     return got;
   }
+
+  countHoles() { let n = 0; this.forCells(cl => { if (this.holds(cl) && !cl.piece) n++; }); return n; }
 
   bonesOnBoard() { let n = 0; this.forCells(cl => { if (cl.piece && cl.piece.bone) n++; }); return n; }
 
@@ -624,7 +640,7 @@ export class Match3 {
     const bone = this.goal('bone');
     if (bone) {
       const left = bone.need - bone.got - this.bonesOnBoard();
-      if (left > 0 && this.bonesOnBoard() < 2 && this.live() < 0.12) return 'bone';
+      if (left > 0 && this.bonesOnBoard() < 2 && this.live() < 0.25) return 'bone';
     }
     return this.colors[Math.floor(this.live() * this.colors.length)];
   }
@@ -819,6 +835,18 @@ export class Match3 {
       roundRect(g, c * cs + 1, r * cs + 1, cs - 2, cs - 2, cs * 0.16);
       g.fill();
       if (cl.dirt) { const s = sprite(cl.dirt === 2 ? 'dirt2' : 'dirt'); if (s) g.drawImage(s, c * cs, r * cs, cs, cs); }
+    }
+    // saída dos ossinhos: faixa verdinha nas duas últimas casas
+    if (this.goals.some(gl => gl.type === 'bone')) {
+      g.fillStyle = 'rgba(109,186,90,.32)';
+      for (const cl of this.exitZone()) { roundRect(g, cl.c * cs + 1, cl.r * cs + 1, cs - 2, cs - 2, cs * 0.16); g.fill(); }
+      g.fillStyle = 'rgba(63,164,102,.55)';
+      for (const cl of this.exitZone()) {
+        const below = this.at(cl.r + 1, cl.c);
+        if (below && below.on) continue;
+        const x = cl.c * cs + cs / 2, y = (cl.r + 1) * cs - cs * 0.1;
+        g.beginPath(); g.moveTo(x - cs * 0.14, y - cs * 0.1); g.lineTo(x + cs * 0.14, y - cs * 0.1); g.lineTo(x, y); g.closePath(); g.fill();
+      }
     }
     // borda do tabuleiro
     g.strokeStyle = 'rgba(185,130,71,.35)';
