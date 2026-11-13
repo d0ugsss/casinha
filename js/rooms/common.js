@@ -151,9 +151,15 @@ export function outside(kind = 'arvore') {
 // ---------- móveis do kit ----------
 const loader = new GLTFLoader();
 const KIT = {};
+let PACK = null;
+const pack = () => (PACK = PACK || import('../kitpack.js').then(m => m.default));
 export function preloadKit(names) {
   return Promise.all(names.map(n => {
-    if (!KIT[n]) KIT[n] = new Promise(res => loader.load(`assets/kit/${n}.glb`, g => res(g.scene), undefined, () => res(null)));
+    if (!KIT[n]) KIT[n] = pack().then(p => new Promise(res => {
+      if (!p[n]) { res(null); return; }
+      const bin = Uint8Array.from(atob(p[n]), c => c.charCodeAt(0));
+      loader.parse(bin.buffer, '', g => res(g.scene), () => res(null));
+    }));
     return KIT[n];
   }));
 }
