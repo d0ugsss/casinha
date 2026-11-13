@@ -30,7 +30,7 @@ export class Encaixe {
 
   resize() {
     const r = this.host.getBoundingClientRect();
-    const cs = Math.floor(Math.min((r.width - 24) / COLS, (r.height - 8) / ROWS, 30));
+    const cs = Math.floor(Math.min((r.width - 16) / COLS, (r.height - 8) / ROWS, 36));
     this.cs = Math.max(14, cs);
     const d = Math.min(window.devicePixelRatio || 1, 3);
     this.cv.width = COLS * this.cs * d; this.cv.height = ROWS * this.cs * d;
@@ -128,7 +128,17 @@ export class Encaixe {
       const k = this.grid[y][x];
       if (k) this.stone(x, y, COLORS[k], this.flash && this.flash.rows.includes(y) ? 0.4 + Math.sin(this.flash.t / 30) * 0.4 : 1);
     }
-    if (!this.over && !this.flash) this.cur.cells.forEach(([cx, cy]) => { if (cy + this.cur.y >= 0) this.stone(cx + this.cur.x, cy + this.cur.y, COLORS[this.cur.k]); });
+    if (!this.over && !this.flash) {
+      let gy = this.cur.y;
+      while (!this.collides(this.cur.cells, this.cur.x, gy + 1)) gy++;
+      if (gy !== this.cur.y) this.cur.cells.forEach(([cx, cy]) => {
+        if (cy + gy < 0) return;
+        const x = (cx + this.cur.x) * cs, y = (cy + gy) * cs;
+        g.fillStyle = 'rgba(255,255,255,.28)'; rr(g, x + 2, y + 2, cs - 4, cs - 4, cs * 0.22); g.fill();
+        g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 2; g.setLineDash([4, 3]); rr(g, x + 2, y + 2, cs - 4, cs - 4, cs * 0.22); g.stroke(); g.setLineDash([]);
+      });
+      this.cur.cells.forEach(([cx, cy]) => { if (cy + this.cur.y >= 0) this.stone(cx + this.cur.x, cy + this.cur.y, COLORS[this.cur.k]); });
+    }
   }
 
   bindTouch() {
@@ -145,7 +155,14 @@ export class Encaixe {
       if (!s) return;
       const dy = e.clientY - s.y, dx = e.clientX - s.x;
       if (dy > this.cs * 2.5 && Math.abs(dy) > Math.abs(dx)) this.drop();
-      else if (!s.moved && Math.abs(dx) < 8 && Math.abs(dy) < 8) this.rotate();
+      else if (!s.moved && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+        const r = this.cv.getBoundingClientRect();
+        const col = Math.floor((e.clientX - r.left) / this.cs);
+        const xs = this.cur.cells.map(([cx]) => cx + this.cur.x);
+        if (col < Math.min(...xs)) this.move(-1);
+        else if (col > Math.max(...xs)) this.move(1);
+        else this.rotate();
+      }
       s = null;
     };
     window.addEventListener('pointermove', this.onMove);

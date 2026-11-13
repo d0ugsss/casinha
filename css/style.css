@@ -125,7 +125,7 @@ i[class^="ico-"] { display: inline-block; width: 24px; height: 24px; background-
 .stars-won i { width: 54px; height: 54px; animation: starpop .5s ease-out both; }
 .stars-won i:nth-child(2) { animation-delay: .15s; }
 .polaroid { background: #fff; padding: 10px 10px 12px; box-shadow: 0 6px 0 #E9C3D2; transform: rotate(-3deg); display: flex; flex-direction: column; gap: 8px; width: 230px; }
-.polaroid img { width: 210px; height: 210px; object-fit: cover; }
+.polaroid img { width: 210px; height: 250px; object-fit: cover; object-position: 50% 8%; }
 .polaroid span { font-family: var(--title); font-weight: 700; font-size: 17px; color: #5E5064; }
 
 /* fase */
@@ -329,7 +329,7 @@ i[class^="ico-"] { display: inline-block; width: 24px; height: 24px; background-
 /* final */
 .modal.final-box { max-width: 380px; max-height: calc(100vh - 40px); overflow: auto; }
 .polaroid.big { width: 280px; transform: rotate(-2deg); }
-.polaroid.big img { width: 260px; height: 200px; }
+.polaroid.big img { width: 260px; height: 200px; object-position: 50% 50%; }
 .modal p.letter { font-family: var(--title); font-weight: 600; font-size: 18px; color: var(--ink); line-height: 1.4; }
 .modal p.sign { align-self: flex-end; font-family: var(--title); font-weight: 800; font-size: 20px; color: var(--rose); margin-top: -8px; }
 .pin.urgent { box-shadow: 0 0 0 4px var(--red), 0 0 18px 6px rgba(217,58,58,.6) !important; animation: pulse .8s infinite; }

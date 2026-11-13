@@ -225,7 +225,7 @@ export const MISSIONS = [
     hello: [['milton', 'Opa, cheguei! Vim dar uma olhada na obra de vocês.'], ['tata', 'Pai! Fica à vontade, o quintal é seu também.']],
     talk: [['milton', 'Tata, lembra quando eu ajudei vocês a construir esse quintal?'], ['tata', 'Lembro! O senhor que assentou as pedras.'], ['milton', 'Pois é. Faltou terminar um pedaço. Me ajuda a encaixar o resto?']],
     done: [['milton', 'Ficou uma beleza! E agora o quintal tem até plaquinha.']],
-    howto: ['Encaixe as pedras pra fechar linhas inteiras. Cada linha assenta uma pedra do caminho: são 6.', 'Arraste pro lado pra mover, toque pra girar e puxe pra baixo pra soltar.'], faster: true
+    howto: ['Encaixe as pedras pra fechar linhas inteiras. Cada linha assenta uma pedra do caminho: são 6.', 'Toque do lado da peça pra mover e em cima dela pra girar. Ou use os botões lá embaixo.', 'A sombra mostra onde ela vai cair. Puxe pra baixo, ou toque em ▼, pra soltar.'], faster: true
   },
   {
     id: 'vitoria1', char: 'vitoria', room: 'sala', after: 13, game: 'frescobol', title: 'Dia de praia', level: 'fácil-média',

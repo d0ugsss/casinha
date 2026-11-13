@@ -26,7 +26,7 @@ const ITEMS = {
   },
   geladeira(s) {
     const body = ['#C9CED3', '#D9463F', '#F7F7F5'][s];
-    return kit('kitchenFridge', { x: x0 + 0.3, z: -0.95, ry: Math.PI / 2, s: S * 1.05, shine: s === 0, colors: { metalLight: body, metal: s === 1 ? '#F4E9DA' : '#DADFE3', metalDark: '#6E7378' } });
+    return kit('kitchenFridge', { x: x0 + 0.27, z: -0.3, ry: Math.PI / 2, s: S * 1.05, shine: s === 0, colors: { metalLight: body, metal: s === 1 ? '#F4E9DA' : '#DADFE3', metalDark: '#6E7378' } });
   },
   fogao(s) {
     const g = new THREE.Group();
@@ -114,6 +114,6 @@ export default makeRoom({
       kit('pottedPlant', { x: x0 + 0.3, z: 1.15, s: S, colors: { plant: '#5DB86A' } }));
   },
   items: ITEMS,
-  spots: { tata: [-0.75, 1.0], dodo: [-0.15, 1.05], zozo: [-1.2, 0.85], marci: [-1.0, 0.0], milton: [1.55, 0.6], vitoria: [1.4, 0.7], ana: [1.3, 0.8], italo: [1.7, 0.6], pai: [1.5, 0.7] },
+  spots: { tata: [-0.75, 1.0], dodo: [-0.15, 1.05], zozo: [-1.2, 0.85], marci: [-1.15, 0.45], milton: [1.55, 0.6], vitoria: [1.4, 0.7], ana: [1.3, 0.8], italo: [1.7, 0.6], pai: [1.5, 0.7] },
   center: [0.0, 0.5, -0.05], radius: 8.4, elev: 0.5, yaw: 0.5, yawMin: 0.12, yawMax: 0.9, want: 5.5
 });

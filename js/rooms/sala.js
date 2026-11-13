@@ -26,7 +26,7 @@ function beachTex() {
 const ITEMS = {
   sofa(s) {
     const z = z0 + 0.34;
-    if (s === 0) return kit('loungeDesignSofa', { x: 0.1, z, ry: Math.PI, s: S * 1.15, colors: { carpetBlue: '#8E949C', metal: '#2B2B2E' } });
+    if (s === 0) return kit('loungeDesignSofa', { x: 0.1, z, ry: 0, s: S * 1.15, colors: { carpetBlue: '#8E949C', metal: '#2B2B2E' } });
     if (s === 1) return kit('loungeSofa', { x: 0.1, z, ry: Math.PI, s: S * 1.18, colors: { carpet: '#4F7D5C', wood: '#6B4A2E' } });
     return group(kit('loungeSofa', { x: 0.1, z, ry: Math.PI, s: S * 1.18, colors: { carpet: '#C98A4B', wood: '#7A5232' } }),
       kit('loungeSofaOttoman', { x: -0.75, z: z + 0.45, s: S, colors: { carpet: '#C98A4B', wood: '#7A5232' } }));
