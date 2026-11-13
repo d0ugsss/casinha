@@ -1,9 +1,9 @@
 // Casa em 3D: cena do cômodo, itens, personagens parados e toque
 import * as THREE from 'three';
-import { buildQuintalBase, buildItem, buildGhost, ghostMat, CHAR_SPOTS } from './quintal.js';
+import { ghostMat } from './quintal.js';
+import { ghostMat as ghostMat2 } from './rooms/common.js';
+import { ROOMS3D } from './rooms/index.js';
 import { CHARS } from './data.js';
-
-const ROOM_BUILDERS = { quintal: { base: buildQuintalBase, item: buildItem, ghost: buildGhost, spots: CHAR_SPOTS, center: [0.1, 0.3, -0.35], radius: 7.6, elev: 0.56, yaw: 0.06 } };
 
 function sparkTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 64;
@@ -70,7 +70,8 @@ export class House {
       if (!down) return;
       const dx = e.clientX - down.x;
       if (Math.abs(dx) > 6) down.moved = true;
-      if (down.moved) this.yawTarget = Math.max(-0.5, Math.min(0.5, down.yaw - dx * 0.004));
+      const c = this.cfg || { yawMin: -0.5, yawMax: 0.5 };
+      if (down.moved) this.yawTarget = Math.max(c.yawMin, Math.min(c.yawMax, down.yaw - dx * 0.004));
     });
     window.addEventListener('pointerup', e => {
       if (!down) return;
@@ -88,7 +89,7 @@ export class House {
     this.canvas.style.width = w + 'px'; this.canvas.style.height = h + 'px';
     this.camera.aspect = w / h;
     // mais estreito (celular em pé) abre o campo de visão pra caber o cômodo
-    const want = 5.4;
+    const want = this.cfg ? this.cfg.want || 5.4 : 5.4;
     const hfov = 2 * Math.atan(want / 2 / (this.cfg ? this.cfg.radius : 7.4));
     const vfov = 2 * Math.atan(Math.tan(hfov / 2) / this.camera.aspect);
     this.camera.fov = THREE.MathUtils.clamp(vfov * 180 / Math.PI, 26, 70);
@@ -105,7 +106,8 @@ export class House {
   }
 
   async loadRoom(roomId, placed = {}, extras = {}) {
-    const cfg = ROOM_BUILDERS[roomId];
+    const cfg = ROOMS3D[roomId];
+    if (cfg.preload) await cfg.preload();
     this.cfg = cfg;
     this.roomId = roomId;
     this.root.clear();
@@ -115,7 +117,7 @@ export class House {
       if (placed[id] !== undefined) this.setItem(id, placed[id], false);
       else this.showGhost(id);
     }
-    if (extras.plaque) this.setItem('plaquinha', 0, false);
+    (extras.gifts || []).forEach(id => this.setItem(id, 0, false));
     this.yaw = this.yawTarget = cfg.yaw;
     this.resize();
   }
@@ -217,6 +219,18 @@ export class House {
     return this._pg.getImageData(0, 0, 1, 1).data[3] > 60;
   }
 
+  // foto da cena (pra polaroid da festa)
+  snapshot() {
+    this.renderer.render(this.scene, this.camera);
+    const src = this.canvas, w = src.width, h = src.height;
+    const c = document.createElement('canvas'); c.width = Math.min(900, w); c.height = Math.round(c.width * 0.77);
+    const g = c.getContext('2d');
+    g.fillStyle = '#FDEFE6'; g.fillRect(0, 0, c.width, c.height);
+    const sh = Math.min(h, w * 0.77), sy = Math.max(0, h * 0.42 - sh / 2);
+    g.drawImage(src, 0, sy, w, sh, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.88);
+  }
+
   start() { if (this.running) return; this.running = true; this.clock.getDelta(); requestAnimationFrame(this.loop); }
   stop() { this.running = false; }
 
@@ -240,7 +254,7 @@ export class House {
       ch.ring.visible = ch.glow;
       if (ch.glow) { const k = (Math.sin(t * 4) + 1) / 2; ch.ring.material.opacity = 0.45 + k * 0.5; ch.ring.scale.setScalar(1 + k * 0.12); }
     }
-    ghostMat.opacity = 0.18 + (Math.sin(t * 2.5) + 1) * 0.07;
+    ghostMat.opacity = ghostMat2.opacity = 0.18 + (Math.sin(t * 2.5) + 1) * 0.07;
     this.anims = this.anims.filter(a => { a.t += dt; a.fn(Math.min(1, a.t / a.dur)); return a.t < a.dur; });
     this.sparks = this.sparks.filter(s => {
       s.t += dt; s.sp.position.y += s.vy * dt;

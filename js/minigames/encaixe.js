@@ -94,7 +94,7 @@ export class Encaixe {
 
   loop(now) {
     if (!this.running) return;
-    const dt = now - this.last; this.last = now;
+    const dt = this.paused ? 0 : now - this.last; this.last = now;
     if (this.flash) {
       this.flash.t += dt;
       if (this.flash.t > 260) { const rows = this.flash.rows; this.flash = null; this.clearRows(rows); }
@@ -151,6 +151,8 @@ export class Encaixe {
     window.addEventListener('pointermove', this.onMove);
     window.addEventListener('pointerup', this.onUp);
   }
+
+  devWin() { this.lines = this.goal - 1; this.clearRows([ROWS - 1]); }
 
   destroy() {
     this.stop();

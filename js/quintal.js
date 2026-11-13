@@ -100,7 +100,8 @@ export const SPOTS = {
   arvore: { x: -1.7, z: 0.45, ry: 0 },
   casinha: { x: -1.05, z: -0.6, ry: 0.5 },
   banco: { x: 1.12, z: 1.38, ry: -0.18 },
-  plaquinha: { x: 0.3, z: -1.35, ry: 0.25 }
+  plaquinha: { x: 0.3, z: -1.35, ry: 0.25 },
+  varal: { x: 0, z: 0, ry: 0 }
 };
 
 export const CHAR_SPOTS = {
@@ -302,6 +303,23 @@ const ITEMS = {
     const sign = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.22, 0.03), [mat('#B9844D'), mat('#B9844D'), mat('#B9844D'), mat('#B9844D'),
       new THREE.MeshStandardMaterial({ map: textTex('Feito com o\nSeu Milton', { w: 300, h: 140, bg: '#C9955B', fg: '#3B2412', font: 'bold 40px Nunito, sans-serif' }), roughness: 0.8 }), mat('#B9844D')]);
     sign.position.set(0, 0.5, 0.03); sign.castShadow = true; g.add(sign);
+    return g;
+  }
+  ,
+  // presente do Dodô: varal de luzes cruzando o quintal
+  varal() {
+    const g = new THREE.Group();
+    const bulb = new THREE.MeshStandardMaterial({ color: '#FFE08A', emissive: '#FFD45A', emissiveIntensity: 1.6 });
+    const wire = mat('#3B3B3B');
+    const lines = [[[-2.3, 1.55, -2.05], [2.4, 1.3, 0.2]], [[-2.3, 1.55, -1.0], [2.4, 1.3, 1.3]]];
+    g.add(cyl(0.025, 0.03, 1.3, '#6B4A2E', 2.4, 0.65, 0.2), cyl(0.025, 0.03, 1.3, '#6B4A2E', 2.4, 0.65, 1.3), cyl(0.025, 0.03, 1.55, '#6B4A2E', -2.3, 0.78, -1.0));
+    lines.forEach(([a, b]) => {
+      const n = 14;
+      const pts = [];
+      for (let i = 0; i <= n; i++) { const k = i / n; pts.push(new THREE.Vector3(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k - Math.sin(k * Math.PI) * 0.22, a[2] + (b[2] - a[2]) * k)); }
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.006, 5), wire));
+      pts.slice(1, -1).forEach(p => { const b2 = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), bulb); b2.position.set(p.x, p.y - 0.05, p.z); g.add(b2); });
+    });
     return g;
   }
 };

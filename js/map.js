@@ -18,7 +18,7 @@ export function renderMap(host, { onRoom, onBack, onPin }) {
   const k = Math.min(1, (window.innerWidth - 24) / 350, (window.innerHeight - 250) / 540);
   plan.style.setProperty('--k', k.toFixed(3));
   const svgParts = [];
-  const unlocked = id => isRoomUnlocked(id) && ROOMS.find(r => r.id === id).ready;
+  const unlocked = id => isRoomUnlocked(id);
   svgParts.push(`<rect x="2" y="332" width="346" height="206" rx="6" fill="#E7DFD2"/>`);
   svgParts.push(`<rect x="200" y="344" width="26" height="194" fill="#6DBA5A"/>`);
   for (let y = 352; y < 530; y += 26) svgParts.push(`<rect x="204" y="${y}" width="18" height="12" rx="2" fill="#B9B4AA"/>`);
@@ -51,16 +51,18 @@ export function renderMap(host, { onRoom, onBack, onPin }) {
   const mission = availableMission(state);
   const byRoom = {};
   presence(state).forEach(p => { (byRoom[p.room] = byRoom[p.room] || []).push(p.id); });
+  if (mission && mission.urgent) (byRoom[state.room] = byRoom[state.room] || []).unshift('margarida');
   for (const [room, ids] of Object.entries(byRoom)) {
     const [x, y, w, hh] = RECTS[room];
     const cx = room === 'quintal' ? 270 : x + w / 2, cy = room === 'quintal' ? 410 : y + hh / 2 + 10;
     const perRow = 3;
     ids.forEach((id, i) => {
-      const glow = mission && mission.char === id;
+      const urgent = id === 'margarida';
+      const glow = urgent || (mission && !mission.urgent && mission.room === room && (mission.chars || [mission.char]).includes(id));
       const size = glow ? 48 : 42;
       const row = Math.floor(i / perRow), inRow = Math.min(perRow, ids.length - row * perRow), col = i % perRow;
       const px = cx - (inRow - 1) * 24 + col * 48 - size / 2, py = cy + row * 52 - size / 2;
-      const pin = h('button', { class: 'pin' + (glow ? ' glow' : ''), style: { left: px + 'px', top: py + 'px' }, 'aria-label': CHARS[id].name, onclick: e => { e.stopPropagation(); onPin(id, room); } },
+      const pin = h('button', { class: 'pin' + (glow ? ' glow' : '') + (urgent ? ' urgent' : ''), style: { left: px + 'px', top: py + 'px' }, 'aria-label': CHARS[id].name, onclick: e => { e.stopPropagation(); onPin(id, room); } },
         h('img', { src: `assets/faces/${CHARS[id].img}.webp`, alt: '' }));
       plan.append(pin);
     });
