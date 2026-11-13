@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFF7EE">
+<title>Nossa Casinha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
+</head>
+<body>
+<div id="app">
+  <!-- carregando -->
+  <section id="s-load" class="screen on">
+    <div class="load-box">
+      <div class="logo">Nossa<br>Casinha</div>
+      <p class="load-sub">um joguinho pra tata</p>
+      <div class="load-bar"><i id="load-fill"></i></div>
+      <button id="btn-start" class="btn big green" hidden>Entrar em casa</button>
+    </div>
+  </section>
+
+  <!-- casa -->
+  <section id="s-house" class="screen">
+    <div id="house-host"></div>
+    <div id="marks"></div>
+    <header class="hud">
+      <div class="hud-room"><b id="room-name">Quintal</b><span id="room-prog">0 de 6 itens</span></div>
+      <div class="pill stars"><i class="ico-star"></i><span id="star-count">0</span></div>
+      <button class="round" id="btn-music" aria-label="Música"><i class="ico-music"></i></button>
+      <button class="round" id="btn-map" aria-label="Mapa da casa"><i class="ico-map"></i><span class="dot" id="map-dot" hidden>!</span></button>
+    </header>
+    <footer class="panel" id="house-panel"></footer>
+  </section>
+
+  <!-- fase -->
+  <section id="s-level" class="screen">
+    <header class="lv-hud">
+      <button class="round" id="btn-lv-back" aria-label="Voltar"><i class="ico-back"></i></button>
+      <div class="lv-title"><b id="lv-name">Fase 1</b><span id="lv-sub"></span></div>
+      <div class="moves"><b id="lv-moves">25</b><span>jogadas</span></div>
+    </header>
+    <div class="goals" id="lv-goals"></div>
+    <div class="board-wrap"><canvas id="board"></canvas></div>
+    <footer class="boosters">
+      <button class="boost" data-b="hammer" aria-label="Martelo"><img alt=""><span class="n"></span></button>
+      <button class="boost" data-b="broom" aria-label="Vassoura"><img alt=""><span class="n"></span></button>
+      <button class="boost" data-b="shuffle" aria-label="Embaralhar"><img alt=""><span class="n"></span></button>
+    </footer>
+    <div class="boost-hint" id="boost-hint" hidden></div>
+  </section>
+
+  <!-- minigame -->
+  <section id="s-mini" class="screen"></section>
+
+  <!-- mapa -->
+  <section id="s-map" class="screen"></section>
+
+  <!-- camadas de cima -->
+  <div id="sheet-layer"></div>
+  <div id="talk-layer"></div>
+  <div id="modal-layer"></div>
+  <div id="toast-layer"></div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
